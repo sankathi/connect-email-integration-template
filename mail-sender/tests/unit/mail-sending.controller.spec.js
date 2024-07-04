@@ -1,46 +1,61 @@
-import { expect, describe, it, afterEach } from '@jest/globals';
-
-import sinon from 'sinon';
-import { messageHandler } from '../../src/controllers/mail-sending.controller.js';
+import { expect, describe, afterAll, it } from '@jest/globals';
+import request from 'supertest';
+import server from '../../src/index.js';
+import { encodeJsonObject } from './utils/encoder.utils.js';
 import { HTTP_STATUS_SUCCESS_ACCEPTED } from '../../src/constants/http-status.constants.js';
-import * as ConfigUtil from '../../src/utils/config.utils.js';
 
+/** Reminder : Please put mandatory environment variables in the settings of your github repository **/
 describe('mail-sending.controller.spec', () => {
-  afterEach(() => {
-    sinon.restore();
+  it(`When resource identifier is absent in URL, it should returns 404 http status`, async () => {
+    let response = {};
+    // Send request to the connector application with following code snippet.
+
+    response = await request(server).post(`/`);
+    expect(response).toBeDefined();
+    expect(response.statusCode).toEqual(404);
   });
 
-  it(`should return 202 HTTP status when message data is missing in incoming event message.`, async () => {
-    const dummyConfig = {
-      clientId: 'NOXsY5G0w68xko7nwtZ3x7UK',
-      clientSecret: 'hQ1B3R7usEaojC8tGYwt3y4n-wWmcVcY',
-      projectKey: 'ayata-commerce-accelerator',
-      scope: 'manage_project:ayata-commerce-accelerator manage_api_clients:ayata-commerce-accelerator view_api_clients:ayata-commerce-accelerator',
-      region: 'europe-west1',
+  it(`When payload body does not exist, it should returns 202 http status`, async () => {
+    let response = {};
+    // Send request to the connector application with following code snippet.
+    let payload = {};
+    response = await request(server).post(`/mailSender`).send(payload);
+
+    expect(response).toBeDefined();
+    expect(response.statusCode).toEqual(HTTP_STATUS_SUCCESS_ACCEPTED);
+  });
+
+  it(`When payload body exists without correct order ID, it should returns 202 http status`, async () => {
+    let response = {};
+    // Send request to the connector application with following code snippet.
+    // Following incoming message data is an example. Please define incoming message based on resources identifer in your own Commercetools project
+    const incomingMessageData = {
+      notificationType: 'Message',
+      resource: { typeId: 'order', id: 'dummy-product-id' },
+      type: 'OrderCreated',
+      resourceUserProvidedIdentifiers: { orderNumber: 'dummy-order-number' },
+      version: 11,
+      oldVersion: 10,
+      modifiedAt: '2023-09-12T00:00:00.000Z',
     };
 
-    sinon.stub(ConfigUtil, 'default').callsFake(() => {
-      return dummyConfig;
-    });
-    const mockRequest = {
-      method: 'POST',
-      url: '/',
-      body: {
-        message: {},
+    const encodedMessageData = encodeJsonObject(incomingMessageData);
+    let payload = {
+      message: {
+        data: encodedMessageData,
       },
     };
-    const mockResponse = {
-      status: () => {
-        return {
-          send: () => {},
-        };
-      },
-    };
-    const responseStatusSpy = sinon.spy(mockResponse, 'status');
+    response = await request(server).post(`/mailSender`).send(payload);
 
-    await messageHandler(mockRequest, mockResponse);
-    expect(responseStatusSpy.firstCall.firstArg).toEqual(
-      HTTP_STATUS_SUCCESS_ACCEPTED
-    );
+    expect(response).toBeDefined();
+    expect(response.statusCode).toEqual(HTTP_STATUS_SUCCESS_ACCEPTED);
+  });
+
+  afterAll(() => {
+    // Enable the function below to close the application on server once all test cases are executed.
+
+    if (server) {
+      server.close();
+    }
   });
 });

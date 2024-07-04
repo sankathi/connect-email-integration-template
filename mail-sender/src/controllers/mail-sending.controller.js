@@ -32,8 +32,24 @@ import {
  * @returns
  */
 export const messageHandler = async (request, response) => {
+
+    const additionalData = {
+    requestId: request.id || 'unknown', // Assuming request.id exists
+    timestamp: new Date().toISOString()
+  };
+
+  // Construct the response body
+  const responseBody = {
+    message: 'Your request reached here...',
+    status: 'accepted',
+    data: additionalData
+  };
   // Send ACCEPTED acknowledgement to Subscription
-  response.status(HTTP_STATUS_SUCCESS_ACCEPTED).send();
+  //response.statusMessage('your request reached here...');
+  response
+    .status(HTTP_STATUS_SUCCESS_ACCEPTED)
+    .json(responseBody).send();
+  // response.status(HTTP_STATUS_SUCCESS_ACCEPTED).statusMessage('your request reached here...').send();
 
   try {
     console.log('#################################################################################################');

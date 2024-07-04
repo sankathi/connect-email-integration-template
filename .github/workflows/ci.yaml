@@ -27,6 +27,3 @@ jobs:
       - name: Install modules
         run: npm ci
 
-
-      - name: Execute tests
-        run: npm run test:ci

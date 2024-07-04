@@ -36,6 +36,12 @@ export const messageHandler = async (request, response) => {
   response.status(HTTP_STATUS_SUCCESS_ACCEPTED).send();
 
   try {
+    console.log('#################################################################################################');
+    console.log('                                                                                                  ');
+    console.log('This is mail sender connector , Connection succesfully made b/w CT and Connector');
+    console.log('                                                                                                  ');
+    console.log('#################################################################################################');
+
     // Check request body
     doValidation(request);
 
